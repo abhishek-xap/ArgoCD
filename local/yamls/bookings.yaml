@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookings
+  labels:
+    app: bookings
+spec:
+  type: NodePort
+  ports:
+  - port: 80 
+    name: http
+    nodePort: 30005
+  selector:
+    app: bookings
+---
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: bookings
+spec:
+  selector:
+    matchLabels:
+      app: bookings
+  replicas: 1 
+  template: 
+    metadata:
+      labels:
+        app: bookings
+    spec:
+      containers:
+      - name: bookings
+        image: xap/bookings
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        env:
+        - name: KidsXap__Mongo__ConnectionString
+          value: "mongodb://mongo:27017"
+        - name: KidsXap__Redis__ConnectionString
+          value: "redis:6379,abortConnect=false"
+        - name: ENV_PREFIX
+          value: KidsXap
+        - name: APP_SUBSCRIBERID
+          value: "f48ec90a-0afe-4e01-ac06-2b93bbb19c5d"
+      hostAliases:
+      - ip: "192.168.29.95"
+        hostnames:
+          - "id.dev.kidsxap.com.au"
+          - "financeapi.dev.kidsxap.com.au"
+---
